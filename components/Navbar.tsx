@@ -13,6 +13,9 @@ export default function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   
+  // Controle do menu mobile
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Modal de Relatório
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -46,6 +49,7 @@ export default function Navbar() {
       if (res.ok) {
         setIsAuthenticated(false);
         setIsLogoutModalOpen(false);
+        setIsMobileMenuOpen(false);
         router.push("/");
         router.refresh();
       } else {
@@ -156,7 +160,6 @@ export default function Navbar() {
     }
   };
 
-  // Função para Gerar o Relatório em Excel com consolidação por produto
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!startDate || !endDate) {
@@ -177,7 +180,6 @@ export default function Navbar() {
         return;
       }
 
-      // 1. Agrupa os dados por dia (DD/MM/YYYY)
       const agrupadoPorDia: { [key: string]: typeof dados } = {};
 
       dados.forEach((item) => {
@@ -193,7 +195,6 @@ export default function Navbar() {
 
       const excelRows: any[] = [];
 
-      // 2. Processa cada dia consolidadando produtos iguais
       Object.keys(agrupadoPorDia).forEach((dia) => {
         const registrosDoDia = agrupadoPorDia[dia];
 
@@ -225,7 +226,6 @@ export default function Navbar() {
           produtosConsolidados[chave].HistoricCredit += item.HistoricCredit || 0;
         });
 
-        // 3. Monta as linhas da planilha para o dia atual
         const listaProdutosDia = Object.values(produtosConsolidados);
         let faturamentoTotalDia = 0;
 
@@ -252,7 +252,6 @@ export default function Navbar() {
         excelRows[primeiraLinhaDoDiaIndex]["Faturamento Total do Dia (R$)"] = faturamentoTotalDia;
       });
 
-      // 4. Exporta para o arquivo Excel (.xlsx)
       const worksheet = XLSX.utils.json_to_sheet(excelRows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório de Vendas");
@@ -358,10 +357,11 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-gray-800 p-4">
+      <nav className="bg-gray-800 p-4 relative z-40">
         <div className="container mx-auto flex justify-between items-center min-h-[40px]">
           {isAuthenticated ? (
             <>
+              {/* LADO ESQUERDO: Mantido intocado */}
               <div className="flex space-x-3">
                 <button
                   onClick={() => setIsOpen(true)}
@@ -371,7 +371,8 @@ export default function Navbar() {
                 </button>
               </div>
 
-              <div className="flex items-center space-x-4">
+              {/* LADO DIREITO: Desktop (Links em linha) */}
+              <div className="hidden lg:flex items-center space-x-4">
                 <button
                   onClick={() => setIsReportModalOpen(true)}
                   className="text-gray-300 hover:text-white transition-colors cursor-pointer"
@@ -418,6 +419,25 @@ export default function Navbar() {
                   </svg>
                 </button>
               </div>
+
+              {/* LADO DIREITO: Botão Hambúrguer (Apenas telas menores) */}
+              <div className="flex lg:hidden items-center">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none"
+                  aria-label="Abrir Menu"
+                >
+                  {!isMobileMenuOpen ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </>
           ) : (
             <div className="flex justify-between w-full items-center">
@@ -433,6 +453,58 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
+        {/* DROPDOWN MENU MOBILE */}
+        {isAuthenticated && isMobileMenuOpen && (
+          <div className="lg:hidden bg-gray-900 border-t border-gray-700 px-4 pt-3 pb-4 space-y-2 mt-4 rounded-b-lg">
+            <button
+              onClick={() => { setIsReportModalOpen(true); setIsMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Gerar Relatório
+            </button>
+            <Link
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Página Inicial
+            </Link>
+            <Link
+              href="/api/historico"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Histórico
+            </Link>
+            <Link
+              href="/api/update"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Atualizar Produtos
+            </Link>
+            <Link
+              href="/api/delete"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Deletar Produtos
+            </Link>
+            <button
+              onClick={() => { setIsResetModalOpen(true); setIsMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 rounded text-base text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Opções de Zerar
+            </button>
+            <button
+              onClick={() => { setIsLogoutModalOpen(true); setIsMobileMenuOpen(false); }}
+              className="flex items-center gap-2 w-full text-left px-3 py-2 rounded text-base text-red-400 hover:bg-gray-800"
+            >
+              Sair
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* MODAL DE SELEÇÃO DE DATA PARA RELATÓRIO */}
