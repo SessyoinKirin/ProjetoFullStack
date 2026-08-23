@@ -384,10 +384,10 @@ export default function Navbar() {
                 <Link href="/api/historico" className="text-gray-300 hover:text-white transition-colors">
                   Histórico
                 </Link>
-                <Link href="/update" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/api/update" className="text-gray-300 hover:text-white transition-colors">
                   Atualizar Produtos
                 </Link>
-                <Link href="/delete" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/api/delete" className="text-gray-300 hover:text-white transition-colors">
                   Deletar Produtos
                 </Link>
                 <button
